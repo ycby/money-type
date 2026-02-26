@@ -2,7 +2,7 @@
   "name": "money-type",
   "version": "1.0.0",
   "description": "",
-  "main": "src/Money.js",
+  "main": "src/Money.ts",
   "type": "module",
   "scripts": {
     "build": "tsc"
