@@ -2,7 +2,8 @@
   "name": "money-type",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "src/Money.js",
+  "type": "module",
   "scripts": {
     "build": "tsc"
   },
