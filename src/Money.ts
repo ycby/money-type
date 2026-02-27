@@ -23,8 +23,35 @@ export default class Money {
         this.iso_code = iso_code;
     }
 
-    getAsNumber(): number {
+    getValue(): number {
 
         return Number(`${this.whole}.${this.fractional}`);
+    }
+
+    getValueInSmallestDenomination(): number | bigint {
+
+        if (typeof this.whole === 'number') {
+
+            const value = this.whole * (10 ** this.decimal_places) + this.fractional;
+
+            if (Number.isSafeInteger(value)) {
+
+                return value;
+            } else {
+
+                return BigInt(this.whole) * (10n ** BigInt(this.decimal_places)) + BigInt(this.fractional);
+            }
+        } else {
+
+            const bigIntValue = BigInt(this.whole) * (10n ** BigInt(this.decimal_places)) + BigInt(this.fractional);
+
+            if (bigIntValue >= BigInt(Number.MAX_SAFE_INTEGER)) {
+
+                return bigIntValue;
+            } else {
+
+                return Number(bigIntValue);
+            }
+        }
     }
 }
