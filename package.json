@@ -5,11 +5,14 @@
   "main": "src/Money.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
-  "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@vitest/coverage-v8": "^4.1.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.1"
   },
   "private": true
 }
