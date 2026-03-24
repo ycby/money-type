@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import Money from "src/Money.ts";
+import Money from "src/Money.js";
 
 describe.concurrent('Money Tests', () => {
 
