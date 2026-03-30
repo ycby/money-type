@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/Money.js",
+  "types": "dist/Money.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
