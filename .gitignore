@@ -1,7 +1,6 @@
 /tmp
 /out-tsc
 .DS_Store
-/dist
 /coverage
 
 /node_modules
