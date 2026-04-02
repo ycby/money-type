@@ -7,16 +7,9 @@ describe.concurrent('Money Tests', () => {
 
         it('Should be instantiatable by constructor, 2dp', () => {
 
-            const money = new Money(10, 1, 2, 'HKD');
+            const money = new Money(1000n, 2, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10.01);
-        });
-
-        it('Should be instantiatable by constructor, 4dp', () => {
-
-            const money = new Money(10, 1, 4, 'HKD');
-
-            expect(money.getNominalValue()).toEqual(10.0001);
+            expect(money.getNominalValue()).toEqual('10.00');
         });
     });
 
@@ -26,21 +19,21 @@ describe.concurrent('Money Tests', () => {
 
             const money = Money.fromSmallestDenomination(1001, 2, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10.01);
+            expect(money.getNominalValue()).toEqual('10.01');
         });
 
         it('Should be instantiatable by fromSmallestDenomination, 4dp', () => {
 
             const money = Money.fromSmallestDenomination(100001, 4, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10.0001);
+            expect(money.getNominalValue()).toEqual('10.0001');
         });
 
         it('Should be instantiatable by fromSmallestDenomination, 2dp, bigint', () => {
 
             const money = Money.fromSmallestDenomination(1001n, 2, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10.01);
+            expect(money.getNominalValue()).toEqual('10.01');
         });
     });
 
@@ -50,26 +43,33 @@ describe.concurrent('Money Tests', () => {
 
             const money = Money.fromNominalValue(10.01, 2, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10.01);
+            expect(money.getNominalValue()).toEqual('10.01');
+        });
+
+        it('Should be instantiatable by fromNominalValue, 3dp but not smallest unit', () => {
+
+            const money = Money.fromNominalValue(10.01, 3, 'HKD');
+
+            expect(money.getNominalValue()).toEqual('10.010');
         });
 
         it('Should be instantiatable by fromNominalValue, 4dp', () => {
 
             const money = Money.fromNominalValue(10.0001, 4, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10.0001);
+            expect(money.getNominalValue()).toEqual('10.0001');
         });
 
         it('Should be instantiatable by fromNominalValue, 0dp', () => {
 
             const money = Money.fromNominalValue(10, 0, 'HKD');
 
-            expect(money.getNominalValue()).toEqual(10);
+            expect(money.getNominalValue()).toEqual('10');
         });
 
         it('Should throw error if invalid value is provided in fromNominalValue', () => {
 
-            expect(() => Money.fromNominalValue('10.01.01' as any, 2, 'HKD')).toThrow('Invalid value provided');
+            expect(() => Money.fromNominalValue('10.01.01' as any, 2, 'HKD')).toThrow('Value must be a number');
         });
 
         it('Should throw error if null value is provided in fromNominalValue', () => {
@@ -99,42 +99,40 @@ describe.concurrent('Money Tests', () => {
 
             const money = Money.fromNominalValue(10.01, 2, 'HKD');
 
-            expect(money.getValueInSmallestDenomination()).toEqual(1001);
+            expect(money.getValueInSmallestDenomination()).toEqual(1001n);
         });
 
         it('Should be able to convert from Nominal value to Smallest Denomination, 4dp', () => {
 
             const money = Money.fromNominalValue(10.0001, 4, 'HKD');
 
-            expect(money.getValueInSmallestDenomination()).toEqual(100001);
+            expect(money.getValueInSmallestDenomination()).toEqual(100001n);
         });
 
         it('Should be able to convert from constructor to Smallest Denomination, 2dp', () => {
 
-            const money = new Money(10, 1, 2, 'HKD');
+            const money = new Money(10n, 0, 'HKD');
 
-            expect(money.getValueInSmallestDenomination()).toEqual(1001);
+            expect(money.getValueInSmallestDenomination()).toEqual(10n);
         });
 
-        it('Should be able to convert from constructor to Smallest Denomination, 4dp large', () => {
+        it('Should be able to convert from Nominal to Smallest Denomination, 2dp', () => {
 
-            const money = new Money(100000000000000, 1, 4, 'HKD');
+            const money = Money.fromNominalValue(10.01, 3, 'HKD');
 
-            expect(money.getValueInSmallestDenomination()).toEqual(1000000000000000001n);
+            expect(money.getValueInSmallestDenomination()).toEqual(10010n);
         });
 
-        it('Should be able to convert from constructor to Smallest Denomination, large', () => {
+        it('Should be able to convert from Nominal to Smallest Denomination, large but safe', () => {
 
-            const money = new Money(100000000000000000n, 1, 2, 'HKD');
+            const money = Money.fromNominalValue(10000000000000.01, 2, 'HKD');
 
-            expect(money.getValueInSmallestDenomination()).toEqual(10000000000000000001n);
+            expect(money.getValueInSmallestDenomination()).toEqual(1000000000000001n);
         });
 
-        it('Should be able to convert from constructor to Smallest Denomination, large but safe', () => {
+        it('Should be able to convert from Nominal to Smallest Denomination, large and unsafe', () => {
 
-            const money = new Money(100000000000n, 1, 2, 'HKD');
-
-            expect(money.getValueInSmallestDenomination()).toEqual(10000000000001);
+            expect(() => Money.fromNominalValue(1000000000000000.01, 2, 'HKD')).toThrow('Provided value is not within safe range')
         });
     });
 });
