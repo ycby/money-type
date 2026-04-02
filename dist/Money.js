@@ -1,69 +1,63 @@
 export default class Money {
     whole;
-    fractional;
     decimal_places;
     iso_code;
-    constructor(whole, fractional, decimal_places = 0, iso_code) {
+    constructor(whole, decimal_places = 0, iso_code) {
         this.whole = whole;
-        this.fractional = fractional;
         this.decimal_places = decimal_places;
         this.iso_code = iso_code;
     }
     static fromSmallestDenomination(value, decimal_places, iso_code) {
         if (value === undefined || value === null)
             throw new Error('Value must not be undefined or null');
-        let whole;
-        let fractional;
-        if (typeof value === 'bigint') {
-            whole = value / (10n ** BigInt(decimal_places));
-            fractional = Number(value % (10n ** BigInt(decimal_places)));
-        }
-        else {
-            whole = Math.trunc(value * (10 ** -decimal_places));
-            fractional = value % (10 ** decimal_places);
-        }
-        return new Money(whole, fractional, decimal_places, iso_code);
+        return new Money(typeof value === 'bigint' ? value : BigInt(value), decimal_places, iso_code);
     }
     //No unsafe ints here
     static fromNominalValue(value, decimal_places, iso_code) {
         if (value === undefined || value === null)
             throw new Error('Value must not be undefined or null');
-        if (Number.MAX_SAFE_INTEGER < value || Number.MIN_SAFE_INTEGER > value)
+        if (typeof value !== 'number')
+            throw new Error('Value must be a number');
+        const convertedValue = value * (10 ** decimal_places);
+        if (Number.MAX_SAFE_INTEGER < convertedValue || Number.MIN_SAFE_INTEGER > convertedValue)
             throw new Error('Provided value is not within safe range. It must be created using the constructor');
-        let whole;
-        let fractional;
-        const fractionalArray = value.toString().split('.');
-        if (fractionalArray.length > 2)
-            throw new Error(`Invalid value provided: ${value}`);
-        if (fractionalArray.length === 2)
-            fractional = Number(fractionalArray[1]);
-        else
-            fractional = 0;
-        whole = Math.trunc(value);
-        return new Money(whole, fractional, decimal_places, iso_code);
+        const stringRep = value.toString().split('.');
+        const wholePart = BigInt(stringRep[0].padEnd(stringRep[0].length + decimal_places, '0'));
+        const decimalPart = stringRep.length > 1 ? BigInt(stringRep[1].slice(0, decimal_places).padEnd(decimal_places, '0')) : 0n;
+        return new Money(wholePart + decimalPart, decimal_places, iso_code);
     }
     getNominalValue() {
-        const fractionalString = this.fractional.toString().padStart(this.decimal_places, "0");
-        return Number(`${this.whole}.${fractionalString}`);
+        const wholeString = this.whole.toString();
+        if (this.decimal_places === 0) {
+            return wholeString;
+        }
+        return `${this.whole.toString().slice(0, wholeString.length - this.decimal_places)}.${this.whole.toString().slice(wholeString.length - this.decimal_places)}`;
     }
     getValueInSmallestDenomination() {
-        if (typeof this.whole === 'number') {
-            const value = this.whole * (10 ** this.decimal_places) + this.fractional;
-            if (Number.isSafeInteger(value)) {
-                return value;
-            }
-            else {
-                return BigInt(this.whole) * (10n ** BigInt(this.decimal_places)) + BigInt(this.fractional);
-            }
-        }
-        else {
-            const bigIntValue = BigInt(this.whole) * (10n ** BigInt(this.decimal_places)) + BigInt(this.fractional);
-            if (bigIntValue >= BigInt(Number.MAX_SAFE_INTEGER)) {
-                return bigIntValue;
-            }
-            else {
-                return Number(bigIntValue);
-            }
-        }
+        return this.whole;
+    }
+    add(toAdd) {
+        if (this.iso_code !== toAdd.iso_code)
+            throw new Error('Cannot perform operation on different ISO codes');
+        const highestDPMoney = Money._normalisePrecision(this, toAdd)[0];
+        return new Money(this.whole + toAdd.whole, highestDPMoney.decimal_places, this.iso_code);
+    }
+    subtract(toSubtract) {
+        if (this.iso_code !== toSubtract.iso_code)
+            throw new Error('Cannot perform operation on different ISO codes');
+        const highestDPMoney = Money._normalisePrecision(this, toSubtract)[0];
+        return new Money(this.whole - toSubtract.whole, highestDPMoney.decimal_places, this.iso_code);
+    }
+    static _orderByPrecision(a, b) {
+        const aIsHigherPrecision = a.decimal_places >= b.decimal_places;
+        return aIsHigherPrecision ? [a, b] : [b, a];
+    }
+    static _normalisePrecision(a, b) {
+        const orderedMoneyByPrecision = Money._orderByPrecision(a, b);
+        const [highestDPMoney, lowestDPMoney] = orderedMoneyByPrecision;
+        const dpDifference = Math.abs(highestDPMoney.decimal_places - lowestDPMoney.decimal_places);
+        lowestDPMoney.decimal_places = highestDPMoney.decimal_places;
+        lowestDPMoney.whole *= 10n ** BigInt(dpDifference);
+        return [highestDPMoney, lowestDPMoney];
     }
 }
