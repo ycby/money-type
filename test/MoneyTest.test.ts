@@ -135,4 +135,75 @@ describe.concurrent('Money Tests', () => {
             expect(() => Money.fromNominalValue(1000000000000000.01, 2, 'HKD')).toThrow('Provided value is not within safe range')
         });
     });
+
+    describe('Add tests', () => {
+
+        it('Should be able to add two money types of the same precision', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromNominalValue(10.01, 2, 'HKD');
+
+            expect('20.02', a.add(b).getNominalValue());
+        });
+
+        it('Should be able to add two money types of different precision', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromNominalValue(10.0001, 5, 'HKD');
+
+            expect('20.01010', a.add(b).getNominalValue());
+        });
+
+
+        it('Should be able to add two money types from different instance', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromSmallestDenomination(100001n, 5, 'HKD');
+
+            expect('20.01010', a.add(b).getNominalValue());
+        });
+
+        it('Should throw error when ISO codes are different', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromSmallestDenomination(100001n, 5, 'USD');
+
+            expect(() => a.add(b)).toThrow('Cannot perform operation on different ISO codes');
+        });
+    });
+
+    describe('Subtract tests', () => {
+
+        it('Should be able to subtract two money types of the same precision', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromNominalValue(10.01, 2, 'HKD');
+
+            expect('0.00', a.subtract(b).getNominalValue());
+        });
+
+        it('Should be able to subtract two money types of different precision', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromNominalValue(10.0001, 5, 'HKD');
+
+            expect('0.00990', a.subtract(b).getNominalValue());
+        });
+
+        it('Should be able to subtract two money types from different instance', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromSmallestDenomination(100001n, 5, 'HKD');
+
+            expect('0.00990', a.subtract(b).getNominalValue());
+        });
+
+        it('Should throw error when ISO codes are different', () => {
+
+            const a = Money.fromNominalValue(10.01, 2, 'HKD');
+            const b = Money.fromSmallestDenomination(100001n, 5, 'USD');
+
+            expect(() => a.subtract(b)).toThrow('Cannot perform operation on different ISO codes');
+        });
+    });
 });
