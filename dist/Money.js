@@ -3,7 +3,7 @@ export default class Money {
     decimal_places;
     iso_code;
     constructor(whole, decimal_places = 0, iso_code) {
-        this.whole = whole;
+        this.whole = typeof whole === 'bigint' ? whole : BigInt(whole);
         this.decimal_places = decimal_places;
         this.iso_code = iso_code;
     }
@@ -47,6 +47,13 @@ export default class Money {
             throw new Error('Cannot perform operation on different ISO codes');
         const highestDPMoney = Money._normalisePrecision(this, toSubtract)[0];
         return new Money(this.whole - toSubtract.whole, highestDPMoney.decimal_places, this.iso_code);
+    }
+    toJSON() {
+        return {
+            whole: this.whole.toString(),
+            decimal_places: this.decimal_places,
+            iso_code: this.iso_code
+        };
     }
     static _orderByPrecision(a, b) {
         const aIsHigherPrecision = a.decimal_places >= b.decimal_places;

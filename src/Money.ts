@@ -4,8 +4,8 @@ export default class Money {
     decimal_places: number;
     iso_code: string | undefined;
 
-    constructor(whole: bigint, decimal_places: number = 0, iso_code?: string) {
-        this.whole = whole;
+    constructor(whole: bigint | string, decimal_places: number = 0, iso_code?: string) {
+        this.whole = typeof whole === 'bigint' ? whole : BigInt(whole);
         this.decimal_places = decimal_places;
         this.iso_code = iso_code;
     }
@@ -66,6 +66,15 @@ export default class Money {
         const highestDPMoney = Money._normalisePrecision(this, toSubtract)[0];
 
         return new Money(this.whole - toSubtract.whole, highestDPMoney.decimal_places, this.iso_code);
+    }
+
+    toJSON(): Object {
+
+        return {
+            whole: this.whole.toString(),
+            decimal_places: this.decimal_places,
+            iso_code: this.iso_code
+        }
     }
 
     static _orderByPrecision(a: Money, b: Money): Money[] {
